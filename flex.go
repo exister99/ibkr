@@ -11,6 +11,8 @@ import (
 	"github.com/knadh/koanf/v2"
 	"github.com/knadh/koanf/parsers/toml"
 	"github.com/knadh/koanf/providers/file"
+
+	s "github.com/exister99/invest/stock"
 )
 
 // Configuration - FlexToken is now removed from constants
@@ -69,6 +71,8 @@ func loadConfig() error {
 }
 
 func main() {
+    positions := make(map[string]s.Stock)
+
 	// 1. Load the FlexToken from the TOML file
 	if err := loadConfig(); err != nil {
 		log.Fatalf("Configuration error: %v", err)
@@ -118,6 +122,7 @@ func main() {
 	fmt.Printf("\nFound %d historical trades:\n", len(trades))
 	
 	for _, t := range trades {
+		positions[t.Symbol] = s.NewStock(t.Symbol)
 		fmt.Printf("%s | %s %s | Qty: %.0f | Price: %.2f\n", 
 			t.TradeDate, t.BuySell, t.Symbol, t.Quantity, t.Price)
 	}
