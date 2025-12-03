@@ -11,6 +11,7 @@ import (
 	"time"
 
 	t "github.com/exister99/invest/transaction"
+	fx "skyblaze/ibkr/flexdata"
 	"github.com/knadh/koanf/parsers/toml"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
@@ -22,8 +23,8 @@ type Stock struct {
 	Transactions []t.Transaction `gorm:"foreignKey:StockID"`
 }
 
-func NewStock(symbol string) (Stock) {
-	return Stock{
+func NewStock(symbol string) (*Stock) {
+	return &Stock{
 		Symbol:       symbol,
 	}
 }
@@ -157,6 +158,10 @@ func getConnTrx() (string, string, error) {
 }
 
 func (old *Stock) AddTrxs(new *Stock) {
+	fmt.Printf("Adding %v to %v\n", new, old )
+}
+
+func (old *Stock) AddTrx(new *fx.Trade) {
 	fmt.Printf("Adding %v to %v\n", new, old )
 }
 

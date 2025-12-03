@@ -12,6 +12,7 @@ import (
 	"github.com/knadh/koanf/parsers/toml"
 	"github.com/knadh/koanf/providers/file"
 
+	fx "skyblaze/ibkr/flexdata"
 	s "github.com/exister99/invest/stock"
 )
 
@@ -20,31 +21,6 @@ const (
 	QueryID   = "1337940" // e.g., "12345"
 	BaseURL   = "https://ndcdyn.interactivebrokers.com/AccountManagement/FlexWebService"
 )
-
-// --- XML Structs for Parsing (Unchanged) ---
-type FlexStatementResponse struct {
-	Status        string `xml:"Status"`
-	ReferenceCode string `xml:"ReferenceCode"`
-	ErrorMessage  string `xml:"ErrorMessage"`
-}
-type FlexQueryResponse struct {
-	FlexStatements struct {
-		FlexStatement struct {
-			Trades struct {
-				Trade []Trade `xml:"Trade"`
-			} `xml:"Trades"`
-		} `xml:"FlexStatement"`
-	} `xml:"FlexStatements"`
-}
-type Trade struct {
-	Symbol     string  `xml:"symbol,attr"`
-	BuySell    string  `xml:"buySell,attr"`
-	Quantity   float64 `xml:"quantity,attr"`
-	Price      float64 `xml:"tradePrice,attr"`
-	Amount     float64 `xml:"cost,attr"`
-	TradeDate  string  `xml:"tradeDate,attr"`
-	TradeID    string  `xml:"tradeID,attr"`
-}
 
 // Global variable to hold the token once loaded
 var FlexToken string
@@ -71,7 +47,7 @@ func loadConfig() error {
 }
 
 func main() {
-    positions := make(map[string]s.Stock)
+    positions := make(map[string]*s.Stock)
 
 	// 1. Load the FlexToken from the TOML file
 	if err := loadConfig(); err != nil {
@@ -86,7 +62,7 @@ func main() {
 	}
 	defer resp.Body.Close()
 
-	var initResp FlexStatementResponse
+	var initResp fx.FlexStatementResponse
 	if err := xml.NewDecoder(resp.Body).Decode(&initResp); err != nil {
 		panic(err)
 	}
@@ -110,7 +86,7 @@ func main() {
 	defer reportResp.Body.Close()
 
 	// Parse the actual trade data
-	var data FlexQueryResponse
+	var data fx.FlexQueryResponse
 	
 	if err := xml.NewDecoder(reportResp.Body).Decode(&data); err != nil {
 		fmt.Printf("Error parsing report (check if report is ready): %v\n", err)
@@ -122,7 +98,13 @@ func main() {
 	fmt.Printf("\nFound %d historical trades:\n", len(trades))
 	
 	for _, t := range trades {
-		positions[t.Symbol] = s.NewStock(t.Symbol)
+		_, exists := positions[t.Symbol]
+		if !exists {
+			positions[t.Symbol] = s.NewStock(t.Symbol)
+		} else {
+			positions[t.Symbol].AddTrx(&t)
+		}
+
 		fmt.Printf("%s | %s %s | Qty: %.0f | Price: %.2f\n", 
 			t.TradeDate, t.BuySell, t.Symbol, t.Quantity, t.Price)
 	}
