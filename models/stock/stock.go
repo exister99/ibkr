@@ -23,6 +23,12 @@ func NewStock(symbol string) (*Stock) {
 	}
 }
 
+func (s *Stock) PrintTrx() {
+	for i, t := range s.Transactions {
+		fmt.Printf("The transaction at %d is %v\n", i, t)
+	}
+}
+
 func (s *Stock) AddTrx(trade *fx.Trade) {
 	//fmt.Printf("Adding %v to %v\n", trade, s )
 	newTrx := t.NewTransaction(trade)

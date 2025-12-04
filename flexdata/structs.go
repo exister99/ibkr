@@ -26,7 +26,7 @@ type Trade struct {
 	BuySell    string  `xml:"buySell,attr"`
 	Quantity   float64 `xml:"quantity,attr"`
 	Price      float64 `xml:"tradePrice,attr"`
-	Amount     float64 `xml:"cost,attr"`
+	Cost     float64 `xml:"cost,attr"`
 	TradeDate  string  `xml:"tradeDate,attr"`
 	TradeID    string  `xml:"tradeID,attr"`
 }

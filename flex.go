@@ -108,4 +108,8 @@ func main() {
 		fmt.Printf("%s | %s %s | Qty: %.0f | Price: %.2f\n", 
 			t.TradeDate, t.BuySell, t.Symbol, t.Quantity, t.Price)
 	}
+
+   positions["IBM"].PrintTrx()
+
 }
+

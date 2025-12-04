@@ -22,17 +22,35 @@ type Transaction struct {
 	Price       float64   `gorm:"column:price"`
 	Amount      float64   `gorm:"column:amount"`
 	Fee         float64   `gorm:"column:fee"`
-	StockID     uint
+}
+
+// parseDateString converts a YYYYMMDD string to a time.Time value.
+// This function demonstrates how to convert your specific date format.
+func parseDateString(dateStr string) (time.Time, error) {
+	// Date string format: YYYYMMDD
+	const LayoutYYYYMMDD = "20060102"
+
+	// Use the reference layout "20060102" (YYYYMMDD) to parse the string.
+	t, err := time.Parse(LayoutYYYYMMDD, dateStr)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("failed to parse date '%s': %w", dateStr, err)
+	}
+	return t, nil
 }
 
 func NewTransaction(t *fx.Trade) *Transaction {
+	d, err := parseDateString(t.TradeDate)
+	if err != nil {
+		fmt.Printf("failed to parse date '%s': %w", t.TradeDate, err)
+	}
 	return &Transaction{
+		Date:        d,
 		Symbol:      t.Symbol,
 		Action:      t.BuySell,
 		Description: t.Description,
 		Quantity:    t.Quantity,
 		Price:       t.Price,
-		Amount:      t.Amount,
+		Amount:      t.Price * t.Quantity,
 	}
 }
 
