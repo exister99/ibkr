@@ -1,20 +1,14 @@
 package stock
 
 import (
-	"database/sql"
 	"fmt"
-	sq "github.com/Masterminds/squirrel"
 	_ "github.com/lib/pq"
 	"gorm.io/gorm"
-	"log"
 	"strings"
 	"time"
 
 	t "github.com/exister99/invest/transaction"
 	fx "skyblaze/ibkr/flexdata"
-	"github.com/knadh/koanf/parsers/toml"
-	"github.com/knadh/koanf/providers/file"
-	"github.com/knadh/koanf/v2"
 )
 
 type Stock struct {
@@ -29,140 +23,10 @@ func NewStock(symbol string) (*Stock) {
 	}
 }
 
-func GetTrxs(s string) ([]t.Transaction, error) {
-	var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	dsn, tt, err := getConnTrx()
-	if err != nil {
-		return nil, err
-	}
-
-	db, err := sql.Open("postgres", dsn)
-	if err != nil {
-		return nil, err
-	}
-
-	defer db.Close()
-
-    likePattern := "-" + s + "%"
-
-	fmt.Printf("The symbol is %s\n", s)
-	// Build the SELECT query
-	rows, err := psql.Select("transaction_date", "action", "symbol", "description", "quantity", "price", "fees_and_commission", "amount").
-		From(tt).
-		Where(sq.Or{
-			// Condition 1: The title contains the search term (using the LIKE logic from Query 1)
-			sq.Expr("symbol LIKE ?", likePattern), 
-			// Condition 2: The author is exactly "John Doe" (using sq.Eq for equality)
-			sq.Eq{"symbol": s},                
-		}).
-		RunWith(db).
-		Query()
-
-	defer rows.Close()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// 4. Iterate through the rows
-	var trxs []t.Transaction
-	for rows.Next() {
-		var trx t.Transaction
-		// Use rows.Scan() to read the data from the current row into the struct fields
-		if err := rows.Scan(&trx.Date, &trx.Action, &trx.Symbol, &trx.Description, &trx.Quantity, &trx.Price, &trx.Fee, &trx.Amount); err != nil {
-			// Handle error and continue or break
-			log.Println("Error scanning row:", err)
-			continue
-		}
-		trxs = append(trxs, trx)
-	}
-
-	return trxs, nil
-}
-
-func GetSymbols() ([]string, error) {
-	dsn, pt, err := getConnStr()
-	if err != nil {
-		return nil, err
-	}
-
-	db, err := sql.Open("postgres", dsn)
-	if err != nil {
-		return nil, err
-	}
-
-	defer db.Close()
-
-	// 1. Use Squirrel to build the SELECT query
-	queryBuilder := sq.Select("symbol").
-		Distinct().
-		From(pt)
-
-	// 2. Get the raw SQL and arguments
-	sqlString, args, err := queryBuilder.ToSql()
-	if err != nil {
-		// Handle error
-		log.Fatal(err)
-	}
-
-	// 3. Execute the query using the standard library
-	rows, err := db.Query(sqlString, args...)
-	if err != nil {
-		// Handle error
-		log.Fatal(err)
-	}
-	defer rows.Close() // ALWAYS close the rows object when you're done
-
-	var symbols []string
-
-	// 4. Iterate through the rows
-	for rows.Next() {
-		var s string
-		// Use rows.Scan() to read the data from the current row into the struct fields
-		if err := rows.Scan(&s); err != nil {
-			// Handle error and continue or break
-			log.Println("Error scanning row:", err)
-			continue
-		}
-		symbols = append(symbols, s)
-	}
-
-	return symbols, nil
-
-}
-
-func getConnStr() (string, string, error) {
-	var k = koanf.New(".")
-
-	c := "./config.toml"
-	if err := k.Load(file.Provider(c), toml.Parser()); err != nil {
-		log.Fatalf("error loading file: %v", err)
-	}
-
-	dsn := k.String("pg.dsn")
-	pt := k.String("pg.pt")
-	return dsn, pt, nil
-}
-
-func getConnTrx() (string, string, error) {
-	var k = koanf.New(".")
-
-	c := "./config.toml"
-	if err := k.Load(file.Provider(c), toml.Parser()); err != nil {
-		log.Fatalf("error loading file: %v", err)
-	}
-
-	dsn := k.String("pg.dsn")
-	tt := k.String("pg.tt")
-	return dsn, tt, nil
-}
-
-func (old *Stock) AddTrxs(new *Stock) {
-	fmt.Printf("Adding %v to %v\n", new, old )
-}
-
-func (old *Stock) AddTrx(new *fx.Trade) {
-	fmt.Printf("Adding %v to %v\n", new, old )
+func (s *Stock) AddTrx(trade *fx.Trade) {
+	//fmt.Printf("Adding %v to %v\n", trade, s )
+	newTrx := t.NewTransaction(trade)
+	s.Transactions = append(s.Transactions, *newTrx)
 }
 
 func (stock *Stock) CountCostBasis() float64 {

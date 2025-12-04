@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strconv"
 	"time"
+
+	fx "skyblaze/ibkr/flexdata"
 )
 
 type Transaction struct {
@@ -23,14 +25,14 @@ type Transaction struct {
 	StockID     uint
 }
 
-func NewTransaction(symbol string, action string, description string, quantity float64, price float64, amount float64) *Transaction {
+func NewTransaction(t *fx.Trade) *Transaction {
 	return &Transaction{
-		Symbol:      symbol,
-		Action:      action,
-		Description: description,
-		Quantity:    quantity,
-		Price:       price,
-		Amount:      amount,
+		Symbol:      t.Symbol,
+		Action:      t.BuySell,
+		Description: t.Description,
+		Quantity:    t.Quantity,
+		Price:       t.Price,
+		Amount:      t.Amount,
 	}
 }
 
