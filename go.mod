@@ -2,6 +2,8 @@ module skyblaze/ibkr
 
 go 1.23.0
 
+replace github.com/exister99/invest/price => ./models/price
+
 replace github.com/exister99/invest/stock => ./models/stock
 
 replace github.com/exister99/invest/transaction => ./models/transaction
@@ -16,6 +18,7 @@ require (
 
 require (
 	github.com/Masterminds/squirrel v1.5.4 // indirect
+	github.com/exister99/invest/price v0.0.0-00010101000000-000000000000 // indirect
 	github.com/exister99/invest/stock v0.0.0-00010101000000-000000000000 // indirect
 	github.com/exister99/invest/transaction v0.0.0-00010101000000-000000000000 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect

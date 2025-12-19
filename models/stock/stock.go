@@ -48,6 +48,19 @@ func (stock *Stock) CountCostBasis() float64 {
 	return -(total/shares)
 }
 
+func (stock *Stock) CountShares() float64 {
+	shares := 0.0
+	for _, t := range stock.Transactions {
+	    if strings.HasPrefix(t.Action, "YOU BOUGHT " + t.Description) {
+			shares += t.Quantity
+		}
+		if strings.HasPrefix(t.Action, "YOU SOLD " + t.Description) {
+			shares -= t.Quantity
+		}
+	}
+	return shares
+}
+
 func (stock *Stock) CountDividends() float64 {
 	total := 0.0
 	for _, t := range stock.Transactions {

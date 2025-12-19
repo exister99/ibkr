@@ -22,6 +22,7 @@ type FlexQueryResponse struct {
 // NOTE: Fields are exported (start with an uppercase letter) to be used outside this package
 type Trade struct {
 	Symbol     string  `xml:"symbol,attr"`
+	AssetCategory     string  `xml:"assetCategory,attr"`
 	Description     string  `xml:"description,attr"`
 	BuySell    string  `xml:"buySell,attr"`
 	Quantity   float64 `xml:"quantity,attr"`
