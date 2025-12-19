@@ -109,7 +109,13 @@ func main() {
 			t.TradeDate, t.BuySell, t.Symbol, t.Quantity, t.Price)
 	}
 
-   positions["IBM"].PrintTrx()
+	for symbol, stock := range positions {
+    	fmt.Printf("Symbol: %s\n", symbol)
+    	// You can call methods on the stock object here
+    	stock.PrintTrx() 
+	}
+
+   //Positions are built, now find the one with max annualized return
 
 }
 
