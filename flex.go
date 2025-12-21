@@ -12,9 +12,10 @@ import (
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
 
+	fx "skyblaze/ibkr/flexdata"
+
 	p "github.com/exister99/invest/price"
 	s "github.com/exister99/invest/stock"
-	fx "skyblaze/ibkr/flexdata"
 )
 
 // Configuration - FlexToken is now removed from constants
@@ -100,9 +101,9 @@ func main() {
 
 	for _, t := range trades {
 		// Filter: Only process if the asset is a Stock
-	    if t.AssetCategory != "STK" {
-    	    continue 
-   		}
+		if t.AssetCategory != "STK" {
+			continue
+		}
 		_, exists := positions[t.Symbol]
 		if !exists {
 			positions[t.Symbol] = s.NewStock(t.Symbol)
@@ -126,7 +127,15 @@ func main() {
 
 	fmt.Println("\n--- Calculating Unrealized Profits ---")
 
+	loops := 3
+
 	for symbol, stock := range positions {
+		// Step 3: Wait for generation (mandatory)
+		//time.Sleep(10 * time.Second)
+		loops--
+		if loops < 0 {
+			break
+		}
 		// 1. Get the current ConID for the symbol
 		//conid, err := getConid(symbol)
 		//if err != nil {
@@ -147,7 +156,7 @@ func main() {
 
 		shares := stock.CountShares()
 		costBasis := stock.CountCostBasis()
-		
+
 		totalValue := currentPrice * shares
 		unrealizedPnL := totalValue - costBasis
 

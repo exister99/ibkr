@@ -38,10 +38,10 @@ func init() {
 
 // SecdefSearchResponse represents an item returned from the contract search.
 type SecdefSearchResponse []struct {
-	// IMPORTANT FIX: Changed ConID type from 'int' to 'string'. 
+	// IMPORTANT FIX: Changed ConID type from 'int' to 'string'.
 	// The IBKR API can sometimes return non-numeric error strings here,
 	// causing an unmarshal error if it's expecting an integer.
-	ConID    string `json:"conid"`    // The unique Contract ID we need
+	ConID    string `json:"conid"` // The unique Contract ID we need
 	Symbol   string `json:"symbol"`
 	SecType  string `json:"secType"`
 	Exchange string `json:"exchange"`
@@ -103,13 +103,13 @@ func getConid(symbol string) (int, error) {
 
 	// For simplicity, we assume the first result is the correct stock contract.
 	conidStr := results[0].ConID
-	
+
 	// Convert the string conid to an integer before returning
 	conid, err := strconv.Atoi(conidStr)
 	if err != nil {
 		return 0, fmt.Errorf("failed to convert conid string '%s' to integer: %w", conidStr, err)
 	}
-	
+
 	return conid, nil
 }
 
@@ -120,6 +120,13 @@ func getCurrentPrice(conid int) (float64, error) {
 	endpoint := fmt.Sprintf("iserver/marketdata/snapshot?conids=%d&fields=31", conid)
 
 	body, err := apiCall(endpoint)
+	//attempts := 100
+	//for err != nil && attempts > 0 {
+	//		//time.Sleep(1 * time.Second)
+	//		attempts--
+	//		body, err = apiCall(endpoint)
+	//	}
+
 	if err != nil {
 		return 0.0, err
 	}
@@ -138,10 +145,10 @@ func getCurrentPrice(conid int) (float64, error) {
 
 	// --- FIX: Improved error handling for missing data/subscriptions ---
 	if !ok {
-        // If "31" (Last Price) is missing, check if the API returned an explicit error
-        if errorVal, exists := snapshot[0]["error"]; exists {
-            return 0.0, fmt.Errorf("API returned error for conid %d: %v", conid, errorVal)
-        }
+		// If "31" (Last Price) is missing, check if the API returned an explicit error
+		if errorVal, exists := snapshot[0]["error"]; exists {
+			return 0.0, fmt.Errorf("API returned error for conid %d: %v", conid, errorVal)
+		}
 		return 0.0, fmt.Errorf("field 31 (Last Price) not found in snapshot response. This strongly suggests missing market data permissions or closed markets")
 	}
 	// --- End FIX ---
@@ -164,7 +171,7 @@ func getCurrentPrice(conid int) (float64, error) {
 	return price, nil
 }
 
-func Price(symbol string ) (float64, error) {
+func Price(symbol string) (float64, error) {
 	// Check for a symbol argument
 	//if len(os.Args) < 2 {
 	//	fmt.Println("Usage: go run stock_price.go <STOCK_SYMBOL>")
@@ -192,6 +199,13 @@ func Price(symbol string ) (float64, error) {
 
 	// 2. Get Current Price
 	price, err := getCurrentPrice(conid)
+	attempts := 100
+	for err != nil && attempts > 0 {
+		//time.Sleep(1 * time.Second)
+		attempts--
+		price, err = getCurrentPrice(conid)
+	}
+
 	if err != nil {
 		fmt.Printf("Error fetching price for conid %d: %v\n", conid, err)
 		return 0.0, err
