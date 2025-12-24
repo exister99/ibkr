@@ -107,9 +107,9 @@ func main() {
 		_, exists := positions[t.Symbol]
 		if !exists {
 			positions[t.Symbol] = s.NewStock(t.Symbol)
-		} else {
-			positions[t.Symbol].AddTrx(&t)
 		}
+		
+		positions[t.Symbol].AddTrx(&t)
 
 		fmt.Printf("%s | %s %s | Qty: %.0f | Price: %.2f\n",
 			t.TradeDate, t.BuySell, t.Symbol, t.Quantity, t.Price)
@@ -160,6 +160,7 @@ func main() {
 		totalValue := currentPrice * shares
 		unrealizedPnL := totalValue - costBasis
 
+		fmt.Printf("%s: Shares: %.2f | Total Value: $%.2f | Cost Basis: $%.2f\n", symbol, shares, totalValue, costBasis)
 		fmt.Printf("%s: Current Price: $%.2f | Unrealized PnL: $%.2f\n",
 			symbol, currentPrice, unrealizedPnL)
 	}

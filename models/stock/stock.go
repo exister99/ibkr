@@ -37,24 +37,22 @@ func (s *Stock) AddTrx(trade *fx.Trade) {
 
 func (stock *Stock) CountCostBasis() float64 {
 	total := 0.0
-	shares := 0.0
+	//shares := 0.0
 	for _, t := range stock.Transactions {
-			if strings.HasPrefix(t.Action, "YOU BOUGHT " + t.Description) {
-			total += t.Amount
-			shares += t.Quantity
-			fmt.Printf("Just added %g to the total\n", t.Amount )
-		}
+		total += t.Amount
+		fmt.Printf("Just added %g to the total Amount\n", t.Amount )
 	}
-	return -(total/shares)
+	return total
 }
 
 func (stock *Stock) CountShares() float64 {
+	fmt.Printf("Counting Shares on %d transactions\n", len(stock.Transactions) )
 	shares := 0.0
 	for _, t := range stock.Transactions {
-	    if strings.HasPrefix(t.Action, "YOU BOUGHT " + t.Description) {
+		if t.Action == "BUY" {
 			shares += t.Quantity
 		}
-		if strings.HasPrefix(t.Action, "YOU SOLD " + t.Description) {
+		if t.Action == "SELL" {
 			shares -= t.Quantity
 		}
 	}
