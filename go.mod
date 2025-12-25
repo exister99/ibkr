@@ -8,7 +8,8 @@ replace github.com/exister99/invest/stock => ./models/stock
 
 replace github.com/exister99/invest/transaction => ./models/transaction
 
-replace skyblaze/ibkr/flexdata => ./flexdata
+replace skyblaze/ibkr/flexdata/trade => ./flexdata/trade
+replace skyblaze/ibkr/flexdata/position => ./flexdata/position
 
 require (
 	github.com/knadh/koanf/parsers/toml v0.1.0

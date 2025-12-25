@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	fx "skyblaze/ibkr/flexdata"
+	fx "skyblaze/ibkr/flexdata/trade"
 )
 
 type Transaction struct {

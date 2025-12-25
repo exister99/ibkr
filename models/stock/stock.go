@@ -8,7 +8,7 @@ import (
 	"time"
 
 	t "github.com/exister99/invest/transaction"
-	fx "skyblaze/ibkr/flexdata"
+	fx "skyblaze/ibkr/flexdata/trade"
 )
 
 type Stock struct {

@@ -12,7 +12,7 @@ import (
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
 
-	fx "skyblaze/ibkr/flexdata"
+	fx "skyblaze/ibkr/flexdata/trade"
 
 	p "github.com/exister99/invest/price"
 	s "github.com/exister99/invest/stock"

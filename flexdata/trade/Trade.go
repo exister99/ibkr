@@ -1,4 +1,4 @@
-package flexdata
+package trade
 
 // FlexStatementResponse holds the initial response status/reference code
 type FlexStatementResponse struct {
