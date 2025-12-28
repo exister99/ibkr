@@ -5,8 +5,8 @@ type OpenPosition struct {
 	Symbol    string  `xml:"symbol,attr"`
 	Position  float64 `xml:"position,attr"`
 	MarkPrice float64 `xml:"markPrice,attr"`
-	CostBasis float64 `xml:"costBasisPrice,attr"`
-	Currency  string  `xml:"currency,attr"`
+	CostBasisPrice float64 `xml:"costBasisPrice,attr"`
+	CostBasisMoney float64 `xml:"costBasisMoney,attr"`
 }
 
 type FlexResult struct {

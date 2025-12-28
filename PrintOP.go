@@ -136,9 +136,30 @@ func contains(b []byte, s string) bool {
 }
 
 func printPositions(positions []p.OpenPosition) {
-	fmt.Printf("\n%-10s %-10s %-12s %-12s\n", "Symbol", "Qty", "Cost Basis", "Price")
+	fmt.Printf("\n%-10s %-10s %-12s %-12s %s\n", "Symbol", "Qty", "Cost Basis", "Price", "PR")
 	fmt.Println("------------------------------------------------------------")
-	for _, p := range positions {
-		fmt.Printf("%-10s %-10.2f %-12.2f %-12.2f %s\n", p.Symbol, p.Position, p.CostBasis, p.MarkPrice, p.Currency)
+
+	var gainz []p.OpenPosition
+
+	for _, pstn := range positions {
+		if pstn.Position < 1 || pstn.Position > 99 {
+			continue
+		}
+	
+		gainz = append(gainz, pstn)
+		//displayARR(pstn)
+		//fmt.Printf("%-10s %-10.2f %-12.2f %-12.2f %s\n", pstn.Symbol, pstn.Position, pstn.CostBasis, pstn.MarkPrice, pstn.Currency)
 	}
+
+	for _, pstn := range gainz {
+		if pstn.MarkPrice < pstn.CostBasisPrice {
+			continue
+		}
+		displayARR(pstn)
+	}
+}
+
+func displayARR(op p.OpenPosition) {
+	prcntrtrn := 100 * (op.MarkPrice/op.CostBasisPrice)
+	fmt.Printf("%-10s %-10.2f %-12.2f %-12.2f %-12.2f\n", op.Symbol, op.Position, op.CostBasisPrice, op.MarkPrice, prcntrtrn)
 }
