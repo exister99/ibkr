@@ -2,24 +2,34 @@ package stock
 
 import (
 	"fmt"
-	_ "github.com/lib/pq"
-	"gorm.io/gorm"
 	"strings"
 	"time"
 
-	t "github.com/exister99/invest/transaction"
+	_ "github.com/lib/pq"
+	"gorm.io/gorm"
+
 	fx "skyblaze/ibkr/flexdata/trade"
+
+	p "github.com/exister99/invest/price"
+	t "github.com/exister99/invest/transaction"
 )
 
 type Stock struct {
 	gorm.Model
-	Symbol       string          `gorm:"column:symbol"`
+	Symbol       string `gorm:"column:symbol"`
+	Price        float64
 	Transactions []t.Transaction `gorm:"foreignKey:StockID"`
 }
 
-func NewStock(symbol string) (*Stock) {
+func NewStock(symbol string) *Stock {
+	// 2. Fetch the current market price
+	currentPrice, err := p.Price(symbol)
+	if err != nil {
+		fmt.Printf("Error fetching price for %s: %v\n", symbol, err)
+	}
 	return &Stock{
-		Symbol:       symbol,
+		Symbol: symbol,
+		Price:  currentPrice,
 	}
 }
 
@@ -40,13 +50,13 @@ func (stock *Stock) CountCostBasis() float64 {
 	//shares := 0.0
 	for _, t := range stock.Transactions {
 		total += t.Amount
-		fmt.Printf("Just added %g to the total Amount\n", t.Amount )
+		fmt.Printf("Just added %g to the total Amount\n", t.Amount)
 	}
 	return total
 }
 
 func (stock *Stock) CountShares() float64 {
-	fmt.Printf("Counting Shares on %d transactions\n", len(stock.Transactions) )
+	fmt.Printf("Counting Shares on %d transactions\n", len(stock.Transactions))
 	shares := 0.0
 	for _, t := range stock.Transactions {
 		if t.Action == "BUY" {
@@ -73,12 +83,12 @@ func (stock *Stock) CountDividends() float64 {
 func (stock *Stock) CountPremiums() float64 {
 	total := 0.0
 	for _, t := range stock.Transactions {
-		if strings.HasPrefix(t.Symbol, "-" + stock.Symbol) {
+		if strings.HasPrefix(t.Symbol, "-"+stock.Symbol) {
 			total += t.Amount
 		}
 	}
 	//fmt.Printf("The premium total is %g\n", total )
-	return total	
+	return total
 }
 
 func (stock *Stock) AverageAge() float64 {
@@ -86,15 +96,15 @@ func (stock *Stock) AverageAge() float64 {
 	now := time.Now()
 	totalDuration := int64(0)
 	totalShares := 0.0
-	
+
 	const dateFormat = "2006-01-02"
 	for _, t := range stock.Transactions {
-		if strings.HasPrefix(t.Action, "YOU BOUGHT " + t.Description) {
-			fmt.Printf("The purches date for %g shares is %v\n", t.Quantity, t.Date )
+		if strings.HasPrefix(t.Action, "YOU BOUGHT "+t.Description) {
+			fmt.Printf("The purches date for %g shares is %v\n", t.Quantity, t.Date)
 			duration := now.Sub(t.Date)
 			// 3. Sum all the durations
-			durationNanos := duration.Nanoseconds() 
-			totalDuration += (int64(durationNanos)  * int64(t.Quantity))
+			durationNanos := duration.Nanoseconds()
+			totalDuration += (int64(durationNanos) * int64(t.Quantity))
 			totalShares += t.Quantity
 		}
 	}
@@ -102,17 +112,17 @@ func (stock *Stock) AverageAge() float64 {
 	// 1. Convert totalDuration to its nanosecond (int64) value
 	nanosPerStandardYear := int64(31536000000000000)
 	//nanoseconds := float64(totalDuration.Nanoseconds())
-	averageDurationNanos := totalDuration / int64(totalShares) 
-	return float64(averageDurationNanos)/float64(nanosPerStandardYear)
+	averageDurationNanos := totalDuration / int64(totalShares)
+	return float64(averageDurationNanos) / float64(nanosPerStandardYear)
 }
 
 func (stock *Stock) LastCall() (bool, t.Transaction) {
 	//Default to a century ago
-    lc := time.Now().AddDate(-100,0,0)
-    foundCall := false
-    LastOne := stock.Transactions[0]
+	lc := time.Now().AddDate(-100, 0, 0)
+	foundCall := false
+	LastOne := stock.Transactions[0]
 	for _, t := range stock.Transactions {
-		if strings.HasPrefix(t.Action, "YOU SOLD OPENING TRANSACTION CALL (" + stock.Symbol) {
+		if strings.HasPrefix(t.Action, "YOU SOLD OPENING TRANSACTION CALL ("+stock.Symbol) {
 			if t.Date.After(lc) {
 				lc = t.Date
 				LastOne = t
@@ -129,6 +139,6 @@ func (stock *Stock) CountFees() float64 {
 	for _, t := range stock.Transactions {
 		total += t.Fee
 	}
-	//fmt.Printf("The fee total is %g\n", total )	
+	//fmt.Printf("The fee total is %g\n", total )
 	return total
 }

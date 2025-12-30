@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"strconv" // Added for string to int conversion
+	"strings"
 	"time"
 )
 
@@ -159,7 +160,9 @@ func getCurrentPrice(conid int) (float64, error) {
 		priceStr, ok := priceVal.(string)
 		if ok {
 			// Attempt to parse the string to float64
-			parsedPrice, parseErr := strconv.ParseFloat(priceStr, 64)
+			// 1. Remove the "C" prefix
+			cleanPrice := strings.TrimPrefix(priceStr, "C")
+			parsedPrice, parseErr := strconv.ParseFloat(cleanPrice, 64)
 			if parseErr != nil {
 				return 0.0, fmt.Errorf("price value is string '%s' but failed to parse: %w", priceStr, parseErr)
 			}

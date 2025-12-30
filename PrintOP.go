@@ -15,12 +15,15 @@ import (
 
 	p "skyblaze/ibkr/flexdata/position"
 
+	s "github.com/exister99/invest/stock"
 )
 
 // Constants - Replace with your actual credentials
 const (
 	//Token   = "YOUR_IBKR_TOKEN"
-	QueryID = "1356519"
+	//QueryID = "1356519"
+	//QueryID = "1359151"
+	QueryID = "1359155"
 	BaseURL = "https://ndcdyn.interactivebrokers.com/AccountManagement/FlexWebService"
 )
 
@@ -68,7 +71,7 @@ func main() {
 	for i := 0; i < maxRetries; i++ {
 		fmt.Printf("Attempt %d: Fetching report...\n", i+1)
 		data, err := fetchStatement(refCode)
-		
+
 		if err == nil {
 			rawData = data
 			break
@@ -121,10 +124,10 @@ func fetchStatement(refCode string) ([]byte, error) {
 
 	body, _ := io.ReadAll(resp.Body)
 
-	// IBKR returns a 200 OK even if the report isn't ready, 
+	// IBKR returns a 200 OK even if the report isn't ready,
 	// but the body will contain a "Fail" status XML instead of the data.
 	//if string(body[:5]) == "<Flex" && (contains(body, "Fail") || contains(body, "1019")) {
-    //fmt.Printf("The body is %s\n", body)
+	//fmt.Printf("The body is %s\n", body)
 	//	return nil, fmt.Errorf("Report still generating")
 	//}
 
@@ -145,7 +148,7 @@ func printPositions(positions []p.OpenPosition) {
 		if pstn.Position < 1 || pstn.Position > 99 {
 			continue
 		}
-	
+
 		gainz = append(gainz, pstn)
 		//displayARR(pstn)
 		//fmt.Printf("%-10s %-10.2f %-12.2f %-12.2f %s\n", pstn.Symbol, pstn.Position, pstn.CostBasis, pstn.MarkPrice, pstn.Currency)
@@ -160,6 +163,9 @@ func printPositions(positions []p.OpenPosition) {
 }
 
 func displayARR(op p.OpenPosition) {
-	prcntrtrn := 100 * (op.MarkPrice/op.CostBasisPrice)
+	prcntrtrn := 100 * (op.MarkPrice / op.CostBasisPrice)
+	stck := s.NewStock(op.Symbol)
 	fmt.Printf("%-10s %-10.2f %-12.2f %-12.2f %-12.2f\n", op.Symbol, op.Position, op.CostBasisPrice, op.MarkPrice, prcntrtrn)
+	fmt.Printf("The symbol is %-10s\n", stck.Symbol)
+
 }
