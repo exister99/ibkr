@@ -17,19 +17,25 @@ import (
 type Stock struct {
 	gorm.Model
 	Symbol       string `gorm:"column:symbol"`
+	Quantity     float64
 	Price        float64
+	Cost         float64
+	Return       float64
 	Transactions []t.Transaction `gorm:"foreignKey:StockID"`
 }
 
-func NewStock(symbol string) *Stock {
+func NewStock(symbol string, cbp float64, q float64) *Stock {
 	// 2. Fetch the current market price
 	currentPrice, err := p.Price(symbol)
 	if err != nil {
 		fmt.Printf("Error fetching price for %s: %v\n", symbol, err)
 	}
 	return &Stock{
-		Symbol: symbol,
-		Price:  currentPrice,
+		Symbol:   symbol,
+		Quantity: q,
+		Price:    currentPrice,
+		Cost:     cbp,
+		Return:   100 * (currentPrice / cbp),
 	}
 }
 

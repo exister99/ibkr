@@ -1,11 +1,13 @@
 package main
 
 import (
+	"cmp"
 	"encoding/xml"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"slices"
 	"time"
 
 	// Import Koanf libraries for config loading
@@ -15,6 +17,7 @@ import (
 
 	p "skyblaze/ibkr/flexdata/position"
 
+	"github.com/exister99/invest/stock"
 	s "github.com/exister99/invest/stock"
 )
 
@@ -142,30 +145,35 @@ func printPositions(positions []p.OpenPosition) {
 	fmt.Printf("\n%-10s %-10s %-12s %-12s %s\n", "Symbol", "Qty", "Cost Basis", "Price", "PR")
 	fmt.Println("------------------------------------------------------------")
 
-	var gainz []p.OpenPosition
+	var gainz []s.Stock
 
 	for _, pstn := range positions {
 		if pstn.Position < 1 || pstn.Position > 99 {
 			continue
 		}
-
-		gainz = append(gainz, pstn)
+		stck := s.NewStock(pstn.Symbol, pstn.CostBasisPrice, pstn.Position)
+		gainz = append(gainz, *stck)
 		//displayARR(pstn)
 		//fmt.Printf("%-10s %-10.2f %-12.2f %-12.2f %s\n", pstn.Symbol, pstn.Position, pstn.CostBasis, pstn.MarkPrice, pstn.Currency)
 	}
 
-	for _, pstn := range gainz {
-		if pstn.MarkPrice < pstn.CostBasisPrice {
-			continue
-		}
-		displayARR(pstn)
+	// Sort by Return in descending order
+	slices.SortFunc(gainz, func(a, b stock.Stock) int {
+		// Comparing b to a results in descending order (highest first)
+		return cmp.Compare(b.Return, a.Return)
+	})
+
+	for _, stock := range gainz {
+		//if pstn.MarkPrice < pstn.CostBasisPrice {
+		//	continue
+		//}
+		displayARR(stock)
 	}
 }
 
-func displayARR(op p.OpenPosition) {
-	prcntrtrn := 100 * (op.MarkPrice / op.CostBasisPrice)
-	stck := s.NewStock(op.Symbol)
-	fmt.Printf("%-10s %-10.2f %-12.2f %-12.2f %-12.2f\n", op.Symbol, op.Position, op.CostBasisPrice, op.MarkPrice, prcntrtrn)
-	fmt.Printf("The symbol is %-10s\n", stck.Symbol)
-
+func displayARR(stck s.Stock) {
+	//prcntrtrn := 100 * (op.MarkPrice / op.CostBasisPrice)
+	//stck := s.NewStock(op.Symbol, op.CostBasisPrice, op.Position)
+	// Consolidate and clean up this mess
+	fmt.Printf("%-10s %-10.2f %-12.2f %-12.2f %-12.2f\n", stck.Symbol, stck.Quantity, stck.Cost, stck.Price, stck.Return)
 }

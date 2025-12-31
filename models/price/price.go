@@ -183,7 +183,7 @@ func Price(symbol string) (float64, error) {
 	//}
 	//symbol := os.Args[1]
 
-	fmt.Printf("--- Fetching data for %s ---\n", symbol)
+	//fmt.Printf("--- Fetching data for %s ---\n", symbol)
 
 	// 1. Get Contract ID (conid)
 	conid, err := getConid(symbol)
@@ -198,7 +198,7 @@ func Price(symbol string) (float64, error) {
 		}
 		return 0.0, err
 	}
-	fmt.Printf("Found Contract ID (conid): %d\n", conid)
+	//fmt.Printf("Found Contract ID (conid): %d\n", conid)
 
 	// 2. Get Current Price
 	price, err := getCurrentPrice(conid)
@@ -214,9 +214,9 @@ func Price(symbol string) (float64, error) {
 		return 0.0, err
 	}
 
-	fmt.Printf("\n============================================\n")
-	fmt.Printf("Current Last Traded Price for %s: $%.2f\n", symbol, price)
-	fmt.Printf("============================================\n")
+	//fmt.Printf("\n============================================\n")
+	//fmt.Printf("Current Last Traded Price for %s: $%.2f\n", symbol, price)
+	//fmt.Printf("============================================\n")
 
 	// Note: You must ensure the IBKR Client Portal Gateway is running and authenticated
 	// before running this program.
