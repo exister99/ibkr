@@ -106,7 +106,7 @@ func main() {
 		}
 		_, exists := positions[t.Symbol]
 		if !exists {
-			positions[t.Symbol] = s.NewStock(t.Symbol)
+			positions[t.Symbol] = s.NewStock(t.Symbol, t.Price, t.Quantity)
 		}
 		
 		positions[t.Symbol].AddTrx(&t)
