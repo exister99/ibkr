@@ -46,6 +46,7 @@ type SecdefSearchResponse []struct {
 	Symbol   string `json:"symbol"`
 	SecType  string `json:"secType"`
 	Exchange string `json:"exchange"`
+	Description string `json:"description"`
 }
 
 // MarketDataSnapshotResponse represents the response from the market data snapshot.
@@ -83,10 +84,13 @@ func apiCall(endpoint string) ([]byte, error) {
 }
 
 // getConid takes a stock symbol and returns its Contract ID (conid) as an integer.
+// It prioritizes results from NASDAQ (ISLAND) and NYSE.
 func getConid(symbol string) (int, error) {
 	// Endpoint: /iserver/secdef/search?symbol={symbol}&name=false&secType=STK
-	// We only search for Stock (STK) type.
 	endpoint := fmt.Sprintf("iserver/secdef/search?symbol=%s&name=false&secType=STK", symbol)
+
+//what about using /trsrv/stocks
+//https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#trsrv-stock-contract
 
 	body, err := apiCall(endpoint)
 	if err != nil {
@@ -102,13 +106,33 @@ func getConid(symbol string) (int, error) {
 		return 0, fmt.Errorf("no contract found for symbol: %s", symbol)
 	}
 
-	// For simplicity, we assume the first result is the correct stock contract.
-	conidStr := results[0].ConID
+	var selectedConid string
+	//var ex string
+	
+	// 1. Priority Loop: Look for NASDAQ (ISLAND) or NYSE
+	for _, res := range results {
+		fmt.Printf("The response is %v\n", res)
+		//ex = strings.ToUpper(res.Exchange)
+		// IBKR refers to NASDAQ as "ISLAND" in many API responses
+		//if true {//ex == "NASDAQ" || ex == "ISLAND" || ex == "NYSE" {
+			//selectedConid = res.ConID
+			//fmt.Printf("We have conid %s on exchange %s for symbol %s\n", selectedConid, ex, symbol)
+			//fmt.Printf("The response is %v\n", res)
+			//break 
+		//}
+	}
+
+
+
+	// 2. Fallback: If no US major exchange found, take the first available result
+	if selectedConid == "" {
+		selectedConid = results[0].ConID
+	}
 
 	// Convert the string conid to an integer before returning
-	conid, err := strconv.Atoi(conidStr)
+	conid, err := strconv.Atoi(selectedConid)
 	if err != nil {
-		return 0, fmt.Errorf("failed to convert conid string '%s' to integer: %w", conidStr, err)
+		return 0, fmt.Errorf("failed to convert conid string '%s' to integer: %w", selectedConid, err)
 	}
 
 	return conid, nil
@@ -140,6 +164,8 @@ func getCurrentPrice(conid int) (float64, error) {
 	if len(snapshot) == 0 {
 		return 0.0, fmt.Errorf("no market data returned for conid: %d", conid)
 	}
+
+	fmt.Printf("The snapshot is %v\n", snapshot)
 
 	// The response is an array of maps, where the key "31" holds the last price.
 	priceVal, ok := snapshot[0]["31"]
