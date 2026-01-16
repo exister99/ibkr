@@ -42,11 +42,24 @@ type SecdefSearchResponse []struct {
 	// IMPORTANT FIX: Changed ConID type from 'int' to 'string'.
 	// The IBKR API can sometimes return non-numeric error strings here,
 	// causing an unmarshal error if it's expecting an integer.
-	ConID    string `json:"conid"` // The unique Contract ID we need
-	Symbol   string `json:"symbol"`
-	SecType  string `json:"secType"`
-	Exchange string `json:"exchange"`
+	ConID       string `json:"conid"` // The unique Contract ID we need
+	Symbol      string `json:"symbol"`
+	SecType     string `json:"secType"`
+	Exchange    string `json:"exchange"`
 	Description string `json:"description"`
+}
+
+// Define the nested structure returned by /trsrv/stocks
+type Contract struct {
+	ConID    int    `json:"conid"`
+	Exchange string `json:"exchange"`
+	IsUS     bool   `json:"isUS"`
+}
+
+type SymbolData struct {
+	Name       string     `json:"name"`
+	AssetClass string     `json:"assetClass"`
+	Contracts  []Contract `json:"contracts"`
 }
 
 // MarketDataSnapshotResponse represents the response from the market data snapshot.
@@ -87,55 +100,44 @@ func apiCall(endpoint string) ([]byte, error) {
 // It prioritizes results from NASDAQ (ISLAND) and NYSE.
 func getConid(symbol string) (int, error) {
 	// Endpoint: /iserver/secdef/search?symbol={symbol}&name=false&secType=STK
-	endpoint := fmt.Sprintf("iserver/secdef/search?symbol=%s&name=false&secType=STK", symbol)
-
-//what about using /trsrv/stocks
-//https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#trsrv-stock-contract
+	//endpoint := fmt.Sprintf("iserver/secdef/search?symbol=%s&name=false&secType=STK", symbol)
+	endpoint := fmt.Sprintf("trsrv/stocks?symbols=%s", symbol)
 
 	body, err := apiCall(endpoint)
 	if err != nil {
 		return 0, err
 	}
 
-	var results SecdefSearchResponse
-	if err := json.Unmarshal(body, &results); err != nil {
-		return 0, fmt.Errorf("error decoding search response: %w", err)
+	// The API returns a map where keys are the symbols (e.g., "AAPL": [...])
+	var result map[string][]SymbolData
+	if err := json.Unmarshal(body, &result); err != nil {
+		fmt.Printf("Unmarshal error: %v\n", err)
+		return 0, err
 	}
 
-	if len(results) == 0 {
-		return 0, fmt.Errorf("no contract found for symbol: %s", symbol)
+	var selectedConid int
+	validConids := make([]int, 0)
+
+	// Iterate through each symbol in the map
+	for symbol, dataList := range result {
+		fmt.Printf("Processing %s...\n", symbol)
+
+		for _, data := range dataList {
+			for _, contract := range data.Contracts {
+				ex := strings.ToUpper(contract.Exchange)
+
+				// Filter for NASDAQ (ISLAND) or NYSE
+				if ex == "NASDAQ" || ex == "ISLAND" || ex == "NYSE" {
+					fmt.Printf("  - Found %s on %s: %d\n", symbol, ex, contract.ConID)
+					selectedConid = contract.ConID
+				}
+			}
+		}
 	}
 
-	var selectedConid string
-	//var ex string
-	
-	// 1. Priority Loop: Look for NASDAQ (ISLAND) or NYSE
-	for _, res := range results {
-		fmt.Printf("The response is %v\n", res)
-		//ex = strings.ToUpper(res.Exchange)
-		// IBKR refers to NASDAQ as "ISLAND" in many API responses
-		//if true {//ex == "NASDAQ" || ex == "ISLAND" || ex == "NYSE" {
-			//selectedConid = res.ConID
-			//fmt.Printf("We have conid %s on exchange %s for symbol %s\n", selectedConid, ex, symbol)
-			//fmt.Printf("The response is %v\n", res)
-			//break 
-		//}
-	}
+	fmt.Printf("\nFinal filtered conids: %v\n", validConids)
 
-
-
-	// 2. Fallback: If no US major exchange found, take the first available result
-	if selectedConid == "" {
-		selectedConid = results[0].ConID
-	}
-
-	// Convert the string conid to an integer before returning
-	conid, err := strconv.Atoi(selectedConid)
-	if err != nil {
-		return 0, fmt.Errorf("failed to convert conid string '%s' to integer: %w", selectedConid, err)
-	}
-
-	return conid, nil
+	return selectedConid, nil
 }
 
 // getCurrentPrice takes a conid and returns the last traded price.
@@ -165,7 +167,7 @@ func getCurrentPrice(conid int) (float64, error) {
 		return 0.0, fmt.Errorf("no market data returned for conid: %d", conid)
 	}
 
-	fmt.Printf("The snapshot is %v\n", snapshot)
+	//fmt.Printf("The snapshot is %v\n", snapshot)
 
 	// The response is an array of maps, where the key "31" holds the last price.
 	priceVal, ok := snapshot[0]["31"]
