@@ -21,6 +21,7 @@ type Stock struct {
 	Price        float64
 	Cost         float64
 	Return       float64
+	Calls		 float64
 	Transactions []t.Transaction `gorm:"foreignKey:StockID"`
 }
 
@@ -36,6 +37,7 @@ func NewStock(symbol string, cbp float64, q float64) *Stock {
 		Price:    currentPrice,
 		Cost:     cbp,
 		Return:   100 * (currentPrice / cbp),
+		Calls:    0,
 	}
 }
 

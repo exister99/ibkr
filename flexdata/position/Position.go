@@ -2,6 +2,8 @@ package position
 
 // Structs for XML Parsing
 type OpenPosition struct {
+	AssetCategory     string  `xml:"assetCategory,attr"`
+	UnderlyingSymbol	string `xml:"underlyingSymbol,attr"`
 	Symbol    string  `xml:"symbol,attr"`
 	Position  float64 `xml:"position,attr"`
 	MarkPrice float64 `xml:"markPrice,attr"`
