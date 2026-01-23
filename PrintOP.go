@@ -171,11 +171,11 @@ func printPositions(positions []p.OpenPosition) {
 		//if pstn.MarkPrice < pstn.CostBasisPrice {
 		//	continue
 		//}
-		for _, call := range calls {		
+		for _, call := range calls {
 			//fmt.Printf("Underlying %s has %-12.2f calls\n", call.UnderlyingSymbol, call.Position)
 			if call.UnderlyingSymbol == stock.Symbol {
 				stock.Calls += call.Position
-			}			
+			}
 		}
 		displayARR(stock)
 	}
@@ -185,5 +185,8 @@ func displayARR(stck s.Stock) {
 	//prcntrtrn := 100 * (op.MarkPrice / op.CostBasisPrice)
 	//stck := s.NewStock(op.Symbol, op.CostBasisPrice, op.Position)
 	// Consolidate and clean up this mess
-	fmt.Printf("%-10s %-10.2f %-10.2f %-12.2f %-12.2f %-12.2f\n", stck.Symbol, stck.Calls, stck.Quantity, stck.Cost, stck.Price, stck.Return)
+	if stck.Calls > -1 && stck.Quantity > 99 {
+		fmt.Printf("%-10s %-10.2f %-10.2f %-12.2f %-12.2f %-12.2f\n", stck.Symbol, stck.Calls, stck.Quantity, stck.Cost, stck.Price, stck.Return)
+
+	}
 }
