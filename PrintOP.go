@@ -24,8 +24,8 @@ import (
 // Constants - Replace with your actual credentials
 const (
 	//Token   = "YOUR_IBKR_TOKEN"
-	QueryID = "1356519"
-	//QueryID = "1359151"
+	//QueryID = "1356519"
+	QueryID = "1359151"
 	//QueryID = "1359155"
 	BaseURL = "https://ndcdyn.interactivebrokers.com/AccountManagement/FlexWebService"
 )
@@ -146,14 +146,17 @@ func printPositions(positions []p.OpenPosition) {
 	fmt.Println("------------------------------------------------------------")
 
 	var gainz []s.Stock
+	var calls []p.OpenPosition
 
 	for _, pstn := range positions {
 		//if pstn.Position < 1 || pstn.Position > 99 {
 		if pstn.Position < 1 {
-			continue
+			calls = append(calls, pstn)
+			//continue
+		} else {
+			stck := s.NewStock(pstn.Symbol, pstn.CostBasisPrice, pstn.Position)
+			gainz = append(gainz, *stck)
 		}
-		stck := s.NewStock(pstn.Symbol, pstn.CostBasisPrice, pstn.Position)
-		gainz = append(gainz, *stck)
 		//displayARR(pstn)
 		//fmt.Printf("%-10s %-10.2f %-12.2f %-12.2f %s\n", pstn.Symbol, pstn.Position, pstn.CostBasis, pstn.MarkPrice, pstn.Currency)
 	}
